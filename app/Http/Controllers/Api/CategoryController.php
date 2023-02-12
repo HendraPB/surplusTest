@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
-use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -15,7 +15,9 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        //
+        return response([
+            'categories' => Category::with('products.images')->get(),
+        ], 200);
     }
 
     /**
@@ -31,12 +33,16 @@ class CategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\CategoryRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CategoryRequest $request)
     {
-        //
+        Category::create($request->only('name'));
+
+        return response([
+            'message' => 'success',
+        ], 201);
     }
 
     /**
@@ -47,7 +53,9 @@ class CategoryController extends Controller
      */
     public function show(Category $category)
     {
-        //
+        return response([
+            'category' => $category->load('products.images'),
+        ], 200);
     }
 
     /**
@@ -64,13 +72,17 @@ class CategoryController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\CategoryRequest  $request
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Category $category)
+    public function update(CategoryRequest $request, Category $category)
     {
-        //
+        $category->update($request->only('name'));
+
+        return response([
+            'message' => 'success',
+        ], 202);
     }
 
     /**
@@ -81,6 +93,10 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
-        //
+        $category->delete();
+
+        return response([
+            'message' => 'success',
+        ], 202);
     }
 }
