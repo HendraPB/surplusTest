@@ -42,7 +42,7 @@ class ImageController extends Controller
         DB::beginTransaction();
 
         try {
-            $fileName = time() . '.' . $request->file->extension();
+            $fileName = rand(1000, 9999) . '.' . $request->file->extension();
             $request->file->move(public_path('images'), $fileName);
 
             $image = Image::create($request->only('name') + [
