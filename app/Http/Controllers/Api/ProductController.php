@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProductRequest;
+use App\Models\Category;
 use App\Models\Product;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -15,7 +17,9 @@ class ProductController extends Controller
      */
     public function index()
     {
-        //
+        return response([
+            'products' => Product::with(['categories', 'images'])->get(),
+        ], 200);
     }
 
     /**
@@ -31,12 +35,40 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\ProductRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        //
+        DB::beginTransaction();
+
+        try {
+            $product = Product::create($request->only('name', 'description'));
+
+            if (isset($request->categories)) {
+                foreach ($request->categories as $category) {
+                    if (!$temp = Category::where('name', $category['name'])->first()) {
+                        $temp = Category::create([
+                            'name' => $category['name'],
+                        ]);
+                    }
+
+                    $product->categories()->attach($temp->id);
+                }
+            }
+
+            DB::commit();
+
+            return response([
+                'message' => 'success',
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            return response([
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -47,7 +79,9 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        //
+        return response([
+            'product' => $product->load(['categories', 'images']),
+        ], 200);
     }
 
     /**
@@ -64,13 +98,43 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\ProductRequest  $request
      * @param  \App\Models\Product  $product
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Product $product)
+    public function update(ProductRequest $request, Product $product)
     {
-        //
+        DB::beginTransaction();
+
+        try {
+            $product->update($request->only('name', 'description'));
+
+            $product->categories()->detach();
+
+            if (isset($request->categories)) {
+                foreach ($request->categories as $category) {
+                    if (!$temp = Category::where('name', $category['name'])->first()) {
+                        $temp = Category::create([
+                            'name' => $category['name'],
+                        ]);
+                    }
+
+                    $product->categories()->attach($temp->id);
+                }
+            }
+
+            DB::commit();
+
+            return response([
+                'message' => 'success',
+            ], 202);
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            return response([
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -81,6 +145,10 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        //
+        $product->delete();
+
+        return response([
+            'message' => 'success',
+        ], 202);
     }
 }
