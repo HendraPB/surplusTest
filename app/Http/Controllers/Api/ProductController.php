@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Models\Category;
+use App\Models\Image;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
 
@@ -54,6 +55,20 @@ class ProductController extends Controller
                     }
 
                     $product->categories()->attach($temp->id);
+                }
+            }
+
+            if (isset($request->images)) {
+                foreach ($request->images as $image) {
+                    $fileName = rand(1000, 9999) . '.' . $image['file']->extension();
+                    $image['file']->move(public_path('images'), $fileName);
+
+                    $temp = Image::create([
+                        'name' => $image['name'],
+                        'file' => '/images/' . $fileName,
+                    ]);
+
+                    $product->images()->attach($temp->id);
                 }
             }
 

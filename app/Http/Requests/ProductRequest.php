@@ -28,6 +28,9 @@ class ProductRequest extends FormRequest
             'description' => 'required',
             'categories' => "array",
             'categories.*.name' => "required_with:categories",
+            'images' => "array",
+            'images.*.name' => 'required_with:images',
+            'images.*.file' => 'required_with:images|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ];
     }
 }
