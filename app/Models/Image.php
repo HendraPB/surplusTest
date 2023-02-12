@@ -16,6 +16,8 @@ class Image extends Model
 
     public $timestamps = false;
 
+    protected $guarded = [];
+
     public function products()
     {
         return $this->belongsToMany('App\Models\Product', 'product_image');

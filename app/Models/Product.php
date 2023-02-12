@@ -16,6 +16,8 @@ class Product extends Model
 
     public $timestamps = false;
 
+    protected $guarded = [];
+
     public function categories()
     {
         return $this->belongsToMany('App\Models\Category', 'category_product');
